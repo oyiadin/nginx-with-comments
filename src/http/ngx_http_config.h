@@ -21,7 +21,10 @@ typedef struct {
 } ngx_http_conf_ctx_t;
 
 
+// HTTP 模块 hook 函数，定义了 8 个阶段
+// 作为 ngx_module_s 结构的 ctx 指针使用
 typedef struct {
+    // 配置文件的解析前后
     ngx_int_t   (*preconfiguration)(ngx_conf_t *cf);
     ngx_int_t   (*postconfiguration)(ngx_conf_t *cf);
 

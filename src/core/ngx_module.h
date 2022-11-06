@@ -219,8 +219,13 @@
 #define NGX_MODULE_V1_PADDING  0, 0, 0, 0, 0, 0, 0, 0
 
 
+// ngx模块
 struct ngx_module_s {
+    // 可用上边的 NGX_MODULE_V1 自动填充前几个字段（ctx_index -> signature）
+    // 不过 name 还是要自己填的
     ngx_uint_t            ctx_index;
+    // 启动时 Nginx 自动填入 index 字段，代表在 ngx_modules 数组里的序号
+    // 参考 ngx_modules.c 文件
     ngx_uint_t            index;
 
     char                 *name;
@@ -231,10 +236,15 @@ struct ngx_module_s {
     ngx_uint_t            version;
     const char           *signature;
 
+
+    // HTTP 类型的模块，ctx 指针必须指向 ngx_http_module_t，其中定义了 8 个阶段的 hook 函数
     void                 *ctx;
+    // commands 数组，定义了本模块要注册到 nginx.conf 里的配置项
+    // 以 ngx_null_command 作为该数组的结尾
     ngx_command_t        *commands;
     ngx_uint_t            type;
 
+    // 几个 hook 函数，如果不需要用到，设置为 NULL 即可
     ngx_int_t           (*init_master)(ngx_log_t *log);
 
     ngx_int_t           (*init_module)(ngx_cycle_t *cycle);
@@ -246,6 +256,9 @@ struct ngx_module_s {
 
     void                (*exit_master)(ngx_cycle_t *cycle);
 
+
+    // 可用上边的 NGX_MODULE_V1_PADDING 自动填充
+    // 下边这些字段目前好像没用
     uintptr_t             spare_hook0;
     uintptr_t             spare_hook1;
     uintptr_t             spare_hook2;

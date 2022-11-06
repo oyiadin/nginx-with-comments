@@ -1,0 +1,9 @@
+# 模块名称
+ngx_addon_name=ngx_http_mytest_module
+
+# 将本模块名称拼接到所有模块的的列表中
+HTTP_MODULES="$HTTP_MODULES ngx_http_mytest_module"
+
+# 将本模块的源码路径拼接到现有列表中
+# $ngx_addon_dir 是 configure 时的 --add-path=PATH 取值
+NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/ngx_http_mytest_module.c"
