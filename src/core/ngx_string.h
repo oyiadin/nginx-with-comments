@@ -13,9 +13,10 @@
 #include <ngx_core.h>
 
 
+// ngx字符串类型
 typedef struct {
-    size_t      len;
-    u_char     *data;
+    size_t      len;    // 长度
+    u_char     *data;   // 字符串，不一定以空字符结尾
 } ngx_str_t;
 
 

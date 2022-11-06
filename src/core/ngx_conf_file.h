@@ -74,6 +74,7 @@
 #define NGX_MAX_CONF_ERRSTR  1024
 
 
+// 定义模块的配置参数（格式）
 struct ngx_command_s {
     ngx_str_t             name;
     ngx_uint_t            type;
@@ -83,6 +84,7 @@ struct ngx_command_s {
     void                 *post;
 };
 
+// 特殊的配置参数，用以结束 commands 数组
 #define ngx_null_command  { ngx_null_string, 0, NULL, 0, 0, NULL }
 
 

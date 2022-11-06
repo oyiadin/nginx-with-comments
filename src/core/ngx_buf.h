@@ -18,8 +18,8 @@ typedef void *            ngx_buf_tag_t;
 typedef struct ngx_buf_s  ngx_buf_t;
 
 struct ngx_buf_s {
-    u_char          *pos;
-    u_char          *last;
+    u_char          *pos;           // 当前游标
+    u_char          *last;          // 最后的有效数据的游标，pos -> last 即尚未处理，正要处理的内容
     off_t            file_pos;
     off_t            file_last;
 
