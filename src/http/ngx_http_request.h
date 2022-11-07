@@ -70,6 +70,7 @@
 #define NGX_HTTP_LOG_UNSAFE                1
 
 
+// 各个状态码的定义/别名
 #define NGX_HTTP_CONTINUE                  100
 #define NGX_HTTP_SWITCHING_PROTOCOLS       101
 #define NGX_HTTP_PROCESSING                102

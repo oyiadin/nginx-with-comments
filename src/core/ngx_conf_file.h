@@ -80,7 +80,7 @@
 {
     // 配置项名称
     .name = ngx_string("daemon"),
-    // 配置项类型，指定此配置项可以出现的位置
+    // 配置项类型，指定此配置项可以出现的位置以及参数结构
     .type = NGX_MAIN_CONF|NGX_DIRECT_CONF|NGX_CONF_FLAG,
     // hook 函数，解析指定的配置项时会调用
     .set = ngx_conf_set_flag_slot,
