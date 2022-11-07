@@ -75,6 +75,25 @@
 
 
 // 定义模块的配置参数（格式）
+// 典型使用案例：
+/*
+{
+    // 配置项名称
+    .name = ngx_string("daemon"),
+    // 配置项类型，指定此配置项可以出现的位置
+    .type = NGX_MAIN_CONF|NGX_DIRECT_CONF|NGX_CONF_FLAG,
+    // hook 函数，解析指定的配置项时会调用
+    .set = ngx_conf_set_flag_slot,
+
+    .conf = 0,
+    // 在内存中配置结构体的（字段）偏移量
+    // 在这里就是 daemon 字段相对于 ngx_core_conf_t 的偏移量
+    .offset = offsetof(ngx_core_conf_t, daemon),
+    // 配置读取完成后的处理函数，由 set 字段指向的函数执行调用，需要是 ngx_conf_post_t 类型
+    // TODO: 不知道为什么在这个结构体里定义成了 void* 类型
+    .post = NULL
+},
+*/
 struct ngx_command_s {
     ngx_str_t             name;
     ngx_uint_t            type;

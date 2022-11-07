@@ -87,6 +87,7 @@ struct ngx_cycle_s {
 
 
 typedef struct {
+    // ngx_flag_t = intptr_t
     ngx_flag_t                daemon;
     ngx_flag_t                master;
 

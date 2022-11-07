@@ -1022,6 +1022,10 @@ ngx_conf_log_error(ngx_uint_t level, ngx_conf_t *cf, ngx_err_t err,
 }
 
 
+// 根据配置取值，设置内存中的配置结构体的对应字段
+// 只支持 on/off 类配置
+// 被设置在 ngx_command_s 结构体里的 set 字段使用
+// conf 是内存里的配置结构体，如 ngx_core_conf_t
 char *
 ngx_conf_set_flag_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
@@ -1031,6 +1035,7 @@ ngx_conf_set_flag_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_flag_t       *fp;
     ngx_conf_post_t  *post;
 
+    // 根据偏移量，取目标字段的指针
     fp = (ngx_flag_t *) (p + cmd->offset);
 
     if (*fp != NGX_CONF_UNSET) {
@@ -1039,6 +1044,7 @@ ngx_conf_set_flag_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     value = cf->args->elts;
 
+    // on ==> 1, off ==> 0
     if (ngx_strcasecmp(value[1].data, (u_char *) "on") == 0) {
         *fp = 1;
 
