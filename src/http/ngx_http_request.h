@@ -20,11 +20,13 @@
 #define NGX_HTTP_LINGERING_BUFFER_SIZE     4096
 
 
+// HTTP协议版本号
 #define NGX_HTTP_VERSION_9                 9
 #define NGX_HTTP_VERSION_10                1000
 #define NGX_HTTP_VERSION_11                1001
 #define NGX_HTTP_VERSION_20                2000
 
+// HTTP方法名
 #define NGX_HTTP_UNKNOWN                   0x00000001
 #define NGX_HTTP_GET                       0x00000002
 #define NGX_HTTP_HEAD                      0x00000004
@@ -180,8 +182,9 @@ typedef struct {
 } ngx_http_header_out_t;
 
 
+// ngx_http_headers_in_t，请求头
 typedef struct {
-    ngx_list_t                        headers;
+    ngx_list_t                        headers;                  // 所有头部组成的链表
 
     ngx_table_elt_t                  *host;
     ngx_table_elt_t                  *connection;
@@ -241,6 +244,9 @@ typedef struct {
     off_t                             content_length_n;
     time_t                            keep_alive_n;
 
+    // 连接类型：
+    // * NGX_HTTP_CONNECTION_CLOSE
+    // * NGX_HTTP_CONNECTION_KEEP_ALIVE
     unsigned                          connection_type:2;
     unsigned                          chunked:1;
     unsigned                          multi:1;
@@ -375,6 +381,7 @@ typedef ngx_int_t (*ngx_http_handler_pt)(ngx_http_request_t *r);
 typedef void (*ngx_http_event_handler_pt)(ngx_http_request_t *r);
 
 
+// 请求的信息
 struct ngx_http_request_s {
     uint32_t                          signature;         /* "HTTP" */
 
@@ -399,7 +406,7 @@ struct ngx_http_request_s {
     ngx_pool_t                       *pool;
     ngx_buf_t                        *header_in;
 
-    ngx_http_headers_in_t             headers_in;
+    ngx_http_headers_in_t             headers_in;           // 已完成解析的请求头
     ngx_http_headers_out_t            headers_out;
 
     ngx_http_request_body_t          *request_body;
@@ -408,8 +415,8 @@ struct ngx_http_request_s {
     time_t                            start_sec;
     ngx_msec_t                        start_msec;
 
-    ngx_uint_t                        method;
-    ngx_uint_t                        http_version;
+    ngx_uint_t                        method;               // NGX_HTTP_GET
+    ngx_uint_t                        http_version;         // NGX_HTTP_VERSION_11
 
     ngx_str_t                         request_line;
     ngx_str_t                         uri;
@@ -417,7 +424,7 @@ struct ngx_http_request_s {
     ngx_str_t                         exten;
     ngx_str_t                         unparsed_uri;
 
-    ngx_str_t                         method_name;
+    ngx_str_t                         method_name;          // "GET"
     ngx_str_t                         http_protocol;
     ngx_str_t                         schema;
 

@@ -38,7 +38,9 @@ typedef struct {
 } ngx_variable_value_t;
 
 
+// 初始化 ngx_str_t 的宏，自动设置好 len 跟 data 字段
 #define ngx_string(str)     { sizeof(str) - 1, (u_char *) str }
+// 空字符串
 #define ngx_null_string     { 0, NULL }
 #define ngx_str_set(str, text)                                               \
     (str)->len = sizeof(text) - 1; (str)->data = (u_char *) text
