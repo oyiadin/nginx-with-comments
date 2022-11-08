@@ -1022,10 +1022,13 @@ ngx_conf_log_error(ngx_uint_t level, ngx_conf_t *cf, ngx_err_t err,
 }
 
 
-// 根据配置取值，设置内存中的配置结构体的对应字段
-// 只支持 on/off 类配置
+// 下列 ngx_conf_xxx_slot 系列函数，是各种类型配置项的预设的解析函数
+// 如 on/off 类型、数字类型、枚举类型等
+// 将根据配置取值，设置内存中的配置结构体的对应字段
 // 被设置在 ngx_command_s 结构体里的 set 字段使用
 // conf 是内存里的配置结构体，如 ngx_core_conf_t
+
+// on/off 类配置
 char *
 ngx_conf_set_flag_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
@@ -1036,6 +1039,7 @@ ngx_conf_set_flag_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_conf_post_t  *post;
 
     // 根据偏移量，取目标字段的指针
+    // 目标字段的类型是 ngx_flag_t
     fp = (ngx_flag_t *) (p + cmd->offset);
 
     if (*fp != NGX_CONF_UNSET) {
@@ -1045,6 +1049,7 @@ ngx_conf_set_flag_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     value = cf->args->elts;
 
     // on ==> 1, off ==> 0
+    // TODO: 为什么这里是 value[1]，应该 value[0] 就是配置项名称
     if (ngx_strcasecmp(value[1].data, (u_char *) "on") == 0) {
         *fp = 1;
 
@@ -1068,6 +1073,7 @@ ngx_conf_set_flag_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 }
 
 
+// 字符串类型的配置
 char *
 ngx_conf_set_str_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
@@ -1076,6 +1082,7 @@ ngx_conf_set_str_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_str_t        *field, *value;
     ngx_conf_post_t  *post;
 
+    // 目标字段是 ngx_str_t 类型（就一个 size 跟一个指针）
     field = (ngx_str_t *) (p + cmd->offset);
 
     if (field->data) {
@@ -1084,6 +1091,9 @@ ngx_conf_set_str_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     value = cf->args->elts;
 
+    // 直接赋值给 conf 结构体里的目标字段即可
+    // 注意这里是将整个 ngx_str_t 结构体拷贝进去了
+    // TODO: value[1].data 这个字段被复用了，能保证 data 指向的内存不被回收吗？
     *field = value[1];
 
     if (cmd->post) {
@@ -1095,6 +1105,9 @@ ngx_conf_set_str_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 }
 
 
+// 允许多次配置同一配置项
+// 最终所有数据将被收集到同一个 ngx_array_t 里
+// TODO: 典型例子应该是 listen 配置，可以出现多次
 char *
 ngx_conf_set_str_array_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
@@ -1104,8 +1117,11 @@ ngx_conf_set_str_array_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_array_t      **a;
     ngx_conf_post_t   *post;
 
+    // 目标字段是 (ngx_array_t *) 类型
     a = (ngx_array_t **) (p + cmd->offset);
 
+    // 如果目标字段这个指针还是空的，创建个新的数组
+    // 如果数组已经有过了，说明此配置项之前出现过，下边直接 push 本次的新数据即可
     if (*a == NGX_CONF_UNSET_PTR) {
         *a = ngx_array_create(cf->pool, 4, sizeof(ngx_str_t));
         if (*a == NULL) {
@@ -1113,6 +1129,7 @@ ngx_conf_set_str_array_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         }
     }
 
+    // 往数组里 push 本次的新数据
     s = ngx_array_push(*a);
     if (s == NULL) {
         return NGX_CONF_ERROR;
@@ -1169,6 +1186,7 @@ ngx_conf_set_keyval_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 }
 
 
+// 整数类型的配置解析
 char *
 ngx_conf_set_num_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
