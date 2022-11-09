@@ -47,16 +47,22 @@ struct ngx_pool_large_s {
 
 
 typedef struct {
-    u_char               *last;
-    u_char               *end;
+    u_char               *last;         // 本内存池中最后一块可用的内存块起始地址
+    u_char               *end;          // 本内存池结束的内存地址
     ngx_pool_t           *next;
     ngx_uint_t            failed;
 } ngx_pool_data_t;
 
 
+// 内存池结构体
+// [                                a mempage                                 ]
+// [            ngx_pool_s            ] [ the data being managed by this pool ]
+// [ ngx_pool_data_t ] [ other fields ] [ the data being managed by this pool ]
+
 struct ngx_pool_s {
-    ngx_pool_data_t       d;
-    size_t                max;
+    ngx_pool_data_t       d;            // 实际承载数据的的内存块
+    size_t                max;          // 本内存池最大可允许分配的内存大小
+    // TODO: 看看 max 会不会随着分配而减小
     ngx_pool_t           *current;
     ngx_chain_t          *chain;
     ngx_pool_large_t     *large;

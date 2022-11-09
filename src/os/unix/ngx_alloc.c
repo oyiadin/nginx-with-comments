@@ -14,6 +14,7 @@ ngx_uint_t  ngx_pagesize_shift;
 ngx_uint_t  ngx_cacheline_size;
 
 
+// 不用看了，就只是 malloc 的包装
 void *
 ngx_alloc(size_t size, ngx_log_t *log)
 {
@@ -31,6 +32,7 @@ ngx_alloc(size_t size, ngx_log_t *log)
 }
 
 
+// malloc 之后 ngx_memzero 一下
 void *
 ngx_calloc(size_t size, ngx_log_t *log)
 {

@@ -20,19 +20,36 @@ ngx_create_pool(size_t size, ngx_log_t *log)
 {
     ngx_pool_t  *p;
 
+    // 申请一块内存，如果支持的话，按照指定的位数对齐
+    // TODO: 这里要对齐是出于什么考虑？就纯粹是访问速度比较快么？
+    // TODO: 居然不给申请到的内存置 0，任意出问题倒是
     p = ngx_memalign(NGX_POOL_ALIGNMENT, size, log);
     if (p == NULL) {
         return NULL;
     }
 
+    // p 指向了一块 size 大小的内存
+    // 最前边用来放置一个 ngx_pool_t 结构体
+    // 后边就是这个内存池实际可用的内存了
+
+    // TODO: size 大小没做限制啊，要是比 ngx_pool_t 还小就出毛病了，至少 assert 一下也好嘛
+
+    // last 字段，最后一块可用的内存块起始地址
+    // 因为现在 p 指向的这片内存池还是空的，只是在首部放置了一个 ngx_pool_t 结构体
+    // 所以从 p 往后偏移 sizeof(ngx_pool_t) 就是目前可用的内存起始地址
     p->d.last = (u_char *) p + sizeof(ngx_pool_t);
+    // 整个内存池的结束地址
     p->d.end = (u_char *) p + size;
     p->d.next = NULL;
     p->d.failed = 0;
 
+    // 减去头部后实际可用的大小
     size = size - sizeof(ngx_pool_t);
+    // NGX_MAX_ALLOC_FROM_POOL 是一页的大小 - 1
+    // 也就是 4KB - 1
     p->max = (size < NGX_MAX_ALLOC_FROM_POOL) ? size : NGX_MAX_ALLOC_FROM_POOL;
 
+    // TODO: 这个 current 是啥
     p->current = p;
     p->chain = NULL;
     p->large = NULL;

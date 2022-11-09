@@ -26,6 +26,9 @@ void *ngx_calloc(size_t size, ngx_log_t *log);
  * aligns allocations bigger than page size at the page boundary
  */
 
+// 申请一块按照指定方式对齐（若支持）的内存
+// 操作系统支持 memalign 时，ngx_memalign 将借助其获取以指定方式对齐的一块内存
+// 如果没有，直接调用 ngx_alloc 申请内存完事
 #if (NGX_HAVE_POSIX_MEMALIGN || NGX_HAVE_MEMALIGN)
 
 void *ngx_memalign(size_t alignment, size_t size, ngx_log_t *log);
