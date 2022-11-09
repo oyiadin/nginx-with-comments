@@ -182,16 +182,18 @@ ngx_module_t  ngx_core_module = {
 static ngx_uint_t   ngx_show_help;
 static ngx_uint_t   ngx_show_version;
 static ngx_uint_t   ngx_show_configure;
-static u_char      *ngx_prefix;
-static u_char      *ngx_error_log;
-static u_char      *ngx_conf_file;
-static u_char      *ngx_conf_params;
-static char        *ngx_signal;
+static u_char      *ngx_prefix;             // 命令行传入，前缀，可近似视为 nginx 工作目录
+static u_char      *ngx_error_log;          // 命令行传入，错误日志文件路径，为空字符串 "" 时代表 stderr
+static u_char      *ngx_conf_file;          // 命令行传入，配置文件地址
+static u_char      *ngx_conf_params;        // 命令行传入，额外的全局配置
+static char        *ngx_signal;             // 命令行传入，指示传入的事件，如 reload/stop 等
 
 
 static char **ngx_os_environ;
 
 
+// 整个 Nginx 的入口
+// Hello, Nginx World! ;-)
 int ngx_cdecl
 main(int argc, char *const *argv)
 {
@@ -746,6 +748,8 @@ ngx_exec_new_binary(ngx_cycle_t *cycle, char *const *argv)
 }
 
 
+// 解析参数，有点暴力，直接 switch case 裸解
+// 平时开发还是直接用 getops 比较多
 static ngx_int_t
 ngx_get_options(int argc, char *const *argv)
 {
@@ -765,6 +769,7 @@ ngx_get_options(int argc, char *const *argv)
 
             switch (*p++) {
 
+            // 根据参数取值情况，设置相应的全局变量
             case '?':
             case 'h':
                 ngx_show_version = 1;
@@ -793,12 +798,16 @@ ngx_get_options(int argc, char *const *argv)
                 ngx_quiet_mode = 1;
                 break;
 
+            // 带参数的参数（怎么这么拗口）
+            // 在 case 里直接把下标 i 给自增了，取下一个参数放到 ngx_prefix 全局变量里
             case 'p':
+                // nginx -p/path/to/xxx 的传参方式
                 if (*p) {
-                    ngx_prefix = p;
+                    ngx_prefix = p;  // 直接复用 argv 区域里的内存，这里就存个指针
                     goto next;
                 }
 
+                // nginx -p /path/to/xxx 的传参方式
                 if (argv[++i]) {
                     ngx_prefix = (u_char *) argv[i];
                     goto next;
@@ -819,6 +828,7 @@ ngx_get_options(int argc, char *const *argv)
                     return NGX_ERROR;
                 }
 
+                // ngx_strcmp 这个宏展开来就只是 strcmp 而已
                 if (ngx_strcmp(ngx_error_log, "stderr") == 0) {
                     ngx_error_log = (u_char *) "";
                 }

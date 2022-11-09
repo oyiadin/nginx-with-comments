@@ -22,7 +22,7 @@
 
 #define NGX_PROCESS_SINGLE     0
 #define NGX_PROCESS_MASTER     1
-#define NGX_PROCESS_SIGNALLER  2
+#define NGX_PROCESS_SIGNALLER  2        // 命令行传入 nginx -s reload 或类似信号时，会设置此标志
 #define NGX_PROCESS_WORKER     3
 #define NGX_PROCESS_HELPER     4
 
