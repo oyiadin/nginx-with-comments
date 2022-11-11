@@ -225,7 +225,7 @@ struct ngx_module_s {
     // 不过 name 还是要自己填的
     ngx_uint_t            ctx_index;
     // 启动时 Nginx 自动填入 index 字段，代表在 ngx_modules 数组里的序号
-    // 参考 ngx_modules.c 文件
+    // 参考 ngx_modules.c 文件的 ngx_preinit_modules 函数
     ngx_uint_t            index;
 
     char                 *name;
@@ -242,6 +242,7 @@ struct ngx_module_s {
     // commands 数组，定义了本模块要注册到 nginx.conf 里的配置项
     // 以 ngx_null_command 作为该数组的结尾
     ngx_command_t        *commands;
+    // 模块类型，有 NGX_CORE_MODULE 与 NGX_CONF_MODULE
     ngx_uint_t            type;
 
     // 几个 hook 函数，如果不需要用到，设置为 NULL 即可
@@ -287,6 +288,7 @@ ngx_int_t ngx_add_module(ngx_conf_t *cf, ngx_str_t *file,
     ngx_module_t *module, char **order);
 
 
+// ngx_modules 跟 ngx_module_names 是 makefile 里生成的代码进行定义的
 extern ngx_module_t  *ngx_modules[];
 extern ngx_uint_t     ngx_max_module;
 

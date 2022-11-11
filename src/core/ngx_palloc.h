@@ -19,6 +19,7 @@
  */
 #define NGX_MAX_ALLOC_FROM_POOL  (ngx_pagesize - 1)
 
+// 16KB
 #define NGX_DEFAULT_POOL_SIZE    (16 * 1024)
 
 #define NGX_POOL_ALIGNMENT       16
@@ -61,7 +62,7 @@ typedef struct {
 
 struct ngx_pool_s {
     ngx_pool_data_t       d;            // 实际承载数据的的内存块
-    size_t                max;          // 本内存池最大可允许分配的内存大小，不会随着内存被分配出去而变化
+    size_t                max;          // 作为 large 内存管理的分界线，默认为一页内存大小，即 4KB - 1
     ngx_pool_t           *current;
     ngx_chain_t          *chain;
     ngx_pool_large_t     *large;

@@ -47,6 +47,7 @@ static ngx_command_t  ngx_stream_commands[] = {
 };
 
 
+// NGX_CORE_MODULE 类型的模块，其 ctx 都必须是 (ngx_core_module_t *) 类型
 static ngx_core_module_t  ngx_stream_module_ctx = {
     ngx_string("stream"),
     NULL,

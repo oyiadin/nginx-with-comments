@@ -22,6 +22,7 @@ ngx_uint_t         ngx_max_module;
 static ngx_uint_t  ngx_modules_n;
 
 
+// 预初始化，只是给分配下编号而已
 ngx_int_t
 ngx_preinit_modules(void)
 {

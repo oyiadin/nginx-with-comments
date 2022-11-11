@@ -35,6 +35,8 @@ static ngx_connection_t  dumb;
 /* STUB */
 
 
+// 传入初始化期间使用的 init_cycle
+// 传出初始化流程之后使用的正式的 cycle
 ngx_cycle_t *
 ngx_init_cycle(ngx_cycle_t *old_cycle)
 {
@@ -66,10 +68,12 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
 
     log = old_cycle->log;
 
+    // 内存池给 16KB 大小
     pool = ngx_create_pool(NGX_CYCLE_POOL_SIZE, log);
     if (pool == NULL) {
         return NULL;
     }
+    // 沿用初始化期间的 log 结构体指针
     pool->log = log;
 
     cycle = ngx_pcalloc(pool, sizeof(ngx_cycle_t));
@@ -114,6 +118,8 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
     ngx_cpystrn(cycle->conf_file.data, old_cycle->conf_file.data,
                 old_cycle->conf_file.len + 1);
 
+    // 命令行传入的额外的全局配置
+    // 比如传入 daemon on;
     cycle->conf_param.len = old_cycle->conf_param.len;
     cycle->conf_param.data = ngx_pstrdup(pool, &old_cycle->conf_param);
     if (cycle->conf_param.data == NULL) {
@@ -151,6 +157,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         }
 
     } else {
+        // 默认预留 20 个打开文件的记录
         n = 20;
     }
 
@@ -195,6 +202,9 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
     ngx_queue_init(&cycle->reusable_connections_queue);
 
 
+    // conf_ctx 的定义有四层指针
+    // 也就是说，其本身也就只是个指针构成的数组而已
+    // 这里把首层的这个指针数组的空间给分配出来
     cycle->conf_ctx = ngx_pcalloc(pool, ngx_max_module * sizeof(void *));
     if (cycle->conf_ctx == NULL) {
         ngx_destroy_pool(pool);
@@ -229,10 +239,14 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
 
 
     for (i = 0; cycle->modules[i]; i++) {
+        // 初始化期间只处理 NGX_CORE_MODULE 类型的模块
+        // 具体有哪些，可跳转该宏的定义
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
         }
 
+        // module 变量是 (ngx_core_module_t *) 类型的
+        // NGX_CORE_MODULE 类型的模块，其 ctx 都必须是该类型
         module = cycle->modules[i]->ctx;
 
         if (module->create_conf) {

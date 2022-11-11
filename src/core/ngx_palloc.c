@@ -101,7 +101,7 @@ ngx_destroy_pool(ngx_pool_t *pool)
     // 下边两个清理循环可以总结得出
     // nginx 对内存的申请都是以一整块为单位
     // 对于大内存申请，背后就是简单地把 malloc 的结果记录到链表里，支持 pfree
-    // 对于小内存申请，则是提前直接申请一页内存，用链表做管理，慢慢从这一页内存里分配内存出去
+    // 对于小内存申请，则是提前直接申请一大块内存，用链表做管理，慢慢从这块内存里分配内存出去
     // 也不记录分配出去的每块小内存的起止位置，这类内存分配出去了就不支持回收了
     for (l = pool->large; l; l = l->next) {
         if (l->alloc) {
@@ -209,7 +209,7 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size)
     // 整个 pool 所占空间大小，包括头部的控制块
     psize = (size_t) (pool->d.end - (u_char *) pool);
 
-    // 申请一页新的内存
+    // 申请一块新的内存
     m = ngx_memalign(NGX_POOL_ALIGNMENT, psize, pool->log);
     if (m == NULL) {
         return NULL;

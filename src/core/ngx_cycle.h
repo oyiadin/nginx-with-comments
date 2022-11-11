@@ -14,6 +14,7 @@
 
 
 #ifndef NGX_CYCLE_POOL_SIZE
+// 16KB
 #define NGX_CYCLE_POOL_SIZE     NGX_DEFAULT_POOL_SIZE
 #endif
 
@@ -37,10 +38,13 @@ struct ngx_shm_zone_s {
 
 
 struct ngx_cycle_s {
-    void                  ****conf_ctx;
-    ngx_pool_t               *pool;
+    // 指针数组，先别被四层指针吓到，反正第一层的数组是放的 create_conf 返回的创建出来的根配置结构体指针
+    // [ 模块1的根配置结构体指针, 模块2的根配置结构体指针, 模块3的根配置结构体指针, ... ]
 
-    ngx_log_t                *log;
+    void                  ****conf_ctx;
+    ngx_pool_t               *pool;                             // 内存池
+
+    ngx_log_t                *log;                              // 日志
     ngx_log_t                 new_log;
 
     ngx_uint_t                log_use_stderr;  /* unsigned  log_use_stderr:1; */
@@ -50,7 +54,7 @@ struct ngx_cycle_s {
     ngx_uint_t                free_connection_n;
 
     ngx_module_t            **modules;
-    ngx_uint_t                modules_n;
+    ngx_uint_t                modules_n;                        // TODO: 可能是当前已注册的模块数量？
     ngx_uint_t                modules_used;    /* unsigned  modules_used:1; */
 
     ngx_queue_t               reusable_connections_queue;
@@ -76,6 +80,8 @@ struct ngx_cycle_s {
 
     ngx_cycle_t              *old_cycle;
 
+    // 一些全局的配置参数
+    // 如配置文件路径，工作路径前缀等
     ngx_str_t                 conf_file;
     ngx_str_t                 conf_param;
     ngx_str_t                 conf_prefix;

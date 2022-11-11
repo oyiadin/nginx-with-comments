@@ -31,6 +31,7 @@ ngx_os_io_t ngx_os_io = {
 };
 
 
+// 操作系统相关的初始化逻辑
 ngx_int_t
 ngx_os_init(ngx_log_t *log)
 {
@@ -57,6 +58,7 @@ ngx_os_init(ngx_log_t *log)
 
 #if (NGX_HAVE_SC_NPROCESSORS_ONLN)
     if (ngx_ncpu == 0) {
+        // 获取 CPU 核数方法
         ngx_ncpu = sysconf(_SC_NPROCESSORS_ONLN);
     }
 #endif

@@ -67,7 +67,20 @@
 #define NGX_CONF_BLOCK_DONE  2
 #define NGX_CONF_FILE_DONE   3
 
+// 核心类型的模块
+// 属于该类型的模块具体列表如下：
+// * ngx_core_module
+// * ngx_http_module
+// * ngx_stream_module
+// * ngx_events_module
+// * ngx_errlog_module
+// * ngx_openssl_module
+// * ngx_regex_module
+// * ngx_thread_pool_module
+// * ngx_mail_module
+// * ngx_google_perftools_module
 #define NGX_CORE_MODULE      0x45524F43  /* "CORE" */
+
 #define NGX_CONF_MODULE      0x464E4F43  /* "CONF" */
 
 

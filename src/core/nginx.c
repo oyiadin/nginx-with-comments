@@ -261,6 +261,7 @@ main(int argc, char *const *argv)
         return 1;
     }
 
+    // 上边 ngx_get_options 解析得到的参数取值，在这一函数里进行进一步处理
     if (ngx_process_options(&init_cycle) != NGX_OK) {
         return 1;
     }
@@ -964,6 +965,7 @@ ngx_process_options(ngx_cycle_t *cycle)
             p[len++] = '/';
         }
 
+        // -p 命令行参数影响这两个字段
         cycle->conf_prefix.len = len;
         cycle->conf_prefix.data = p;
         cycle->prefix.len = len;
