@@ -22,7 +22,7 @@ ngx_create_pool(size_t size, ngx_log_t *log)
 
     // 申请一块内存，如果支持的话，按照指定的位数对齐
     // TODO: 这里要对齐是出于什么考虑？就纯粹是访问速度比较快么？
-    // TODO: 居然不给申请到的内存置 0，任意出问题倒是
+    // TODO: 居然不给申请到的内存置 0，容易出问题倒是
     p = ngx_memalign(NGX_POOL_ALIGNMENT, size, log);
     if (p == NULL) {
         return NULL;
@@ -68,6 +68,7 @@ ngx_destroy_pool(ngx_pool_t *pool)
     ngx_pool_cleanup_t  *c;
 
     for (c = pool->cleanup; c; c = c->next) {
+        // cleanup->handler: void (*)(void *data)
         if (c->handler) {
             ngx_log_debug1(NGX_LOG_DEBUG_ALLOC, pool->log, 0,
                            "run cleanup: %p", c);
@@ -97,6 +98,11 @@ ngx_destroy_pool(ngx_pool_t *pool)
 
 #endif
 
+    // 下边两个清理循环可以总结得出
+    // nginx 对内存的申请都是以一整块为单位
+    // 对于大内存申请，背后就是简单地把 malloc 的结果记录到链表里，支持 pfree
+    // 对于小内存申请，则是提前直接申请一页内存，用链表做管理，慢慢从这一页内存里分配内存出去
+    // 也不记录分配出去的每块小内存的起止位置，这类内存分配出去了就不支持回收了
     for (l = pool->large; l; l = l->next) {
         if (l->alloc) {
             ngx_free(l->alloc);
@@ -177,7 +183,9 @@ ngx_palloc_small(ngx_pool_t *pool, size_t size, ngx_uint_t align)
             m = ngx_align_ptr(m, NGX_ALIGNMENT);
         }
 
+        // 判断剩余空闲空间是否足够分配
         if ((size_t) (p->d.end - m) >= size) {
+            // woc，这么粗暴，直接把指针往后移
             p->d.last = m + size;
 
             return m;
@@ -198,8 +206,10 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size)
     size_t       psize;
     ngx_pool_t  *p, *new;
 
+    // 整个 pool 所占空间大小，包括头部的控制块
     psize = (size_t) (pool->d.end - (u_char *) pool);
 
+    // 申请一页新的内存
     m = ngx_memalign(NGX_POOL_ALIGNMENT, psize, pool->log);
     if (m == NULL) {
         return NULL;
@@ -207,12 +217,18 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size)
 
     new = (ngx_pool_t *) m;
 
+    // pool 所占空间的尾部
     new->d.end = m + psize;
     new->d.next = NULL;
     new->d.failed = 0;
 
+    // 看起来形成链表的多个 pool 之间，只有第一个 pool 有除了 d 字段之外的字段
+    // 这里只跳过了 ngx_pool_data_t，也就是第一个字段，d 结构体
     m += sizeof(ngx_pool_data_t);
+    // 跳过之后做下对齐
     m = ngx_align_ptr(m, NGX_ALIGNMENT);
+    // 直接将可用空间首部设为减去 size 之后的
+    // 减掉的这部分空间将随着本次调用的返回值出去给调用者使用
     new->d.last = m + size;
 
     for (p = pool->current; p->d.next; p = p->d.next) {
@@ -234,6 +250,7 @@ ngx_palloc_large(ngx_pool_t *pool, size_t size)
     ngx_uint_t         n;
     ngx_pool_large_t  *large;
 
+    // 直接申请一大块指定大小的内存
     p = ngx_alloc(size, pool->log);
     if (p == NULL) {
         return NULL;
@@ -243,6 +260,7 @@ ngx_palloc_large(ngx_pool_t *pool, size_t size)
 
     for (large = pool->large; large; large = large->next) {
         if (large->alloc == NULL) {
+            // 遍历到最后一个空的 large 结果，放到里边的 alloc
             large->alloc = p;
             return p;
         }
@@ -259,7 +277,7 @@ ngx_palloc_large(ngx_pool_t *pool, size_t size)
     }
 
     large->alloc = p;
-    large->next = pool->large;
+    large->next = pool->large;  // 插到头部
     pool->large = large;
 
     return p;
@@ -296,6 +314,7 @@ ngx_pfree(ngx_pool_t *pool, void *p)
 {
     ngx_pool_large_t  *l;
 
+    // pfree 只支持回收大块内存
     for (l = pool->large; l; l = l->next) {
         if (p == l->alloc) {
             ngx_log_debug1(NGX_LOG_DEBUG_ALLOC, pool->log, 0,
@@ -311,6 +330,7 @@ ngx_pfree(ngx_pool_t *pool, void *p)
 }
 
 
+// palloc + memzero
 void *
 ngx_pcalloc(ngx_pool_t *pool, size_t size)
 {
