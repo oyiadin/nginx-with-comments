@@ -1152,6 +1152,7 @@ ngx_signal_process(ngx_cycle_t *cycle, char *sig)
         return 1;
     }
 
+    // 读取 PID，然后最终跳到 ngx_os_signal_process
     return ngx_os_signal_process(cycle, sig, pid);
 
 }

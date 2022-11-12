@@ -329,6 +329,7 @@ main(int argc, char *const *argv)
     }
 
     // 带了 -s 参数的，到这里就转入 ngx_signal_process 函数了，不再往下
+    // 里边其实最终就是把 PID 号从文件里拿出来，发个指定的信号过去而已
     if (ngx_signal) {
         return ngx_signal_process(cycle, ngx_signal);
     }
@@ -350,6 +351,7 @@ main(int argc, char *const *argv)
     }
 
     if (!ngx_inherited && ccf->daemon) {
+        // 执行成功后，父进程退出，这里返回时已经成为子进程了
         if (ngx_daemon(cycle->log) != NGX_OK) {
             return 1;
         }

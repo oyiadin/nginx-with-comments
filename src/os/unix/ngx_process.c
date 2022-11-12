@@ -635,6 +635,7 @@ ngx_os_signal_process(ngx_cycle_t *cycle, char *name, ngx_pid_t pid)
 
     for (sig = signals; sig->signo != 0; sig++) {
         if (ngx_strcmp(name, sig->name) == 0) {
+            // 直接就给对应 PID 发信号，没什么特殊处理
             if (kill(pid, sig->signo) != -1) {
                 return 0;
             }

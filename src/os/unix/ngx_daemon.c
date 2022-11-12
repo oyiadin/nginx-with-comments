@@ -23,12 +23,13 @@ ngx_daemon(ngx_log_t *log)
         break;
 
     default:
-        exit(0);
+        exit(0);    // 父进程退出
     }
 
     ngx_parent = ngx_pid;
     ngx_pid = ngx_getpid();
 
+    // TODO: session id 可以干嘛用
     if (setsid() == -1) {
         ngx_log_error(NGX_LOG_EMERG, log, ngx_errno, "setsid() failed");
         return NGX_ERROR;
