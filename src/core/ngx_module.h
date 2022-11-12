@@ -237,7 +237,10 @@ struct ngx_module_s {
     const char           *signature;
 
 
-    // HTTP 类型的模块，ctx 指针必须指向 ngx_http_module_t，其中定义了 8 个阶段的 hook 函数
+    // ctx 字段一般用来指定某类模块定义的回调
+    // 如 NGX_CORE_MODULE 类型（type 字段）的模块，ctx 字段是 (ngx_core_module_t *)
+    // ngx_core_module_t 里有 create_conf、init_conf 等回调
+    // 而对于 HTTP 类型的模块，其为 (ngx_http_module_t *)，其中定义了 8 个阶段的 hook 函数
     void                 *ctx;
     // commands 数组，定义了本模块要注册到 nginx.conf 里的配置项
     // 以 ngx_null_command 作为该数组的结尾

@@ -238,9 +238,10 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
     }
 
 
+    // 调用模块的 create_conf 回调
+    // 当前初始化期间只处理 NGX_CORE_MODULE 类型的模块
     for (i = 0; cycle->modules[i]; i++) {
-        // 初始化期间只处理 NGX_CORE_MODULE 类型的模块
-        // 具体有哪些，可跳转该宏的定义
+        // NGX_CORE_MODULE 的模块具体有哪些，可跳转该宏的定义
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
         }
@@ -289,12 +290,15 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
     log->log_level = NGX_LOG_DEBUG_ALL;
 #endif
 
+    // 解析命令行传入的参数
     if (ngx_conf_param(&conf) != NGX_CONF_OK) {
         environ = senv;
         ngx_destroy_cycle_pools(&conf);
         return NULL;
     }
 
+    // TODO: 疑问：这里应该是能处理所有模块注册的配置项的
+    // 但跟上边只对 NGX_CORE_MODULE 执行了 create_conf 有什么关联，还得再看看
     if (ngx_conf_parse(&conf, &cycle->conf_file) != NGX_CONF_OK) {
         environ = senv;
         ngx_destroy_cycle_pools(&conf);
@@ -337,6 +341,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
             goto failed;
         }
 
+    // TODO: 这是啥场景的分支
     } else if (!ngx_is_init_cycle(old_cycle)) {
 
         /*
@@ -441,6 +446,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         }
 
         if (shm_zone[i].shm.size == 0) {
+            // TODO: 这会应该都还是空的才对，应该是我漏了这些共享内存的初始化的代码
             ngx_log_error(NGX_LOG_EMERG, log, 0,
                           "zero size shared memory zone \"%V\"",
                           &shm_zone[i].shm.name);
@@ -957,6 +963,7 @@ failed:
 static void
 ngx_destroy_cycle_pools(ngx_conf_t *conf)
 {
+    // cycle 里共有两个 pool
     ngx_destroy_pool(conf->temp_pool);
     ngx_destroy_pool(conf->pool);
 }
@@ -1104,6 +1111,9 @@ ngx_signal_process(ngx_cycle_t *cycle, char *sig)
 
     ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "signal process started");
 
+    // 从 ngx_core_module 开始
+    // conf_ctx 这个数组，其中 NGX_CORE_MODULE 相关的插件配置指针，已经在初始化 cycle 的过程中，
+    // 调用 ngx_core_module_t.create_conf 完成创建了
     ccf = (ngx_core_conf_t *) ngx_get_conf(cycle->conf_ctx, ngx_core_module);
 
     ngx_memzero(&file, sizeof(ngx_file_t));

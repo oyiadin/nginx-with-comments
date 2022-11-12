@@ -83,6 +83,8 @@ ngx_conf_param(ngx_conf_t *cf)
     b.end = b.last;
     b.temporary = 1;
 
+    // 模拟一个假的文件，其 buffer 是命令行传入的全局配置参数
+    // 这样就能像读取文件一样解析命令行传入的配置了
     conf_file.file.fd = NGX_INVALID_FILE;
     conf_file.file.name.data = NULL;
     conf_file.line = 0;
@@ -239,6 +241,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
     }
 
 
+    // 解析配置文件的主循环
     for ( ;; ) {
         rc = ngx_conf_read_token(cf);
 
@@ -316,6 +319,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
         }
 
 
+        // 执行各个配置选项的回调函数（设置在内存里的结构体）
         rc = ngx_conf_handler(cf, rc);
 
         if (rc == NGX_ERROR) {

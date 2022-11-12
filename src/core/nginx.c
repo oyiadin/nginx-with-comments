@@ -328,6 +328,7 @@ main(int argc, char *const *argv)
         return 0;
     }
 
+    // 带了 -s 参数的，到这里就转入 ngx_signal_process 函数了，不再往下
     if (ngx_signal) {
         return ngx_signal_process(cycle, ngx_signal);
     }
@@ -1050,6 +1051,8 @@ ngx_process_options(ngx_cycle_t *cycle)
 }
 
 
+// 创建 ngx_core_conf_t，会被放置到 ngx_cycle_t.conf_ctx 数组里
+// 将各个字段初始化为 UNSET
 static void *
 ngx_core_module_create_conf(ngx_cycle_t *cycle)
 {

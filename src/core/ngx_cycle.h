@@ -40,7 +40,6 @@ struct ngx_shm_zone_s {
 struct ngx_cycle_s {
     // 指针数组，先别被四层指针吓到，反正第一层的数组是放的 create_conf 返回的创建出来的根配置结构体指针
     // [ 模块1的根配置结构体指针, 模块2的根配置结构体指针, 模块3的根配置结构体指针, ... ]
-
     void                  ****conf_ctx;
     ngx_pool_t               *pool;                             // 内存池
 
@@ -92,6 +91,8 @@ struct ngx_cycle_s {
 };
 
 
+// ngx_core_module 创建的配置结构体
+// 下边这些字段，会被填入配置文件里的取值
 typedef struct {
     // ngx_flag_t = intptr_t
     ngx_flag_t                daemon;
