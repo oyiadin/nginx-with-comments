@@ -136,6 +136,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
     sigio = 0;
     live = 1;
 
+    // master 进程主循环：等信号，根据信号做出相应动作
     for ( ;; ) {
         if (delay) {
             if (ngx_sigalrm) {
@@ -222,6 +223,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
 
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "reconfiguring");
 
+            // -s reload 场景下，会重新初始化一个新的 cycle
             cycle = ngx_init_cycle(cycle);
             if (cycle == NULL) {
                 cycle = (ngx_cycle_t *) ngx_cycle;

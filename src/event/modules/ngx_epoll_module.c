@@ -327,6 +327,8 @@ ngx_epoll_init(ngx_cycle_t *cycle, ngx_msec_t timer)
     epcf = ngx_event_get_conf(cycle->conf_ctx, ngx_epoll_module);
 
     if (ep == -1) {
+        // 给 epoll 的 size 为预估最大连接数的一半，合理
+        // 这个 size 在内核里不一定有用，只是建议预留大小
         ep = epoll_create(cycle->connection_n / 2);
 
         if (ep == -1) {
