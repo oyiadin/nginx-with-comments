@@ -15,12 +15,13 @@ ngx_list_create(ngx_pool_t *pool, ngx_uint_t n, size_t size)
 {
     ngx_list_t  *list;
 
+    // 从内存池中创建新链表的 ngx_list_t 结构
     list = ngx_palloc(pool, sizeof(ngx_list_t));
     if (list == NULL) {
         return NULL;
     }
 
-    // 创建第一个数组，大小 n * size
+    // 初始化内嵌在 ngx_list_t 结构里的首个区块，大小为 n * size
     // 以及填入 ngx_list_t 的其他字段
     if (ngx_list_init(list, pool, n, size) != NGX_OK) {
         return NULL;
@@ -42,30 +43,29 @@ ngx_list_push(ngx_list_t *l)
     last = l->last;
 
     if (last->nelts == l->nalloc) {
-        // 满了，建新数组
 
         /* the last part is full, allocate a new list part */
-
-        // 新数组的控制块（见 ngx_list_part_s）
+        // 满了，建新区块
         last = ngx_palloc(l->pool, sizeof(ngx_list_part_t));
         if (last == NULL) {
             return NULL;
         }
 
-        // 新数组，注意大小是 nalloc * size
+        // 新区块里的数组，注意大小是 nalloc * size
         last->elts = ngx_palloc(l->pool, l->nalloc * l->size);
         if (last->elts == NULL) {
             return NULL;
         }
 
-        last->nelts = 0;  // 下边 L70 做了自增
+        last->nelts = 0;  // 下边退出循环后做了自增，所以最后 nelts=1
         last->next = NULL;
 
-        // 把新数组的控制块链进链表
+        // 把之前的最后一个区块连上当前的新区块，并修改last区块字段
         l->last->next = last;
         l->last = last;
     }
 
+    // 直接对 elts 指针做偏移，得到对应元素的地址
     elt = (char *) last->elts + l->size * last->nelts;
     last->nelts++;
 
