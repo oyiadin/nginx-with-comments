@@ -1,4 +1,7 @@
-
+// 为了 IDE 能识别 debug 部分的代码，手动开一下这个宏
+#ifndef NGX_DEBUG
+#define NGX_DEBUG  1
+#endif
 
 #ifndef NGX_HAVE_UNISTD_H
 #define NGX_HAVE_UNISTD_H  1
