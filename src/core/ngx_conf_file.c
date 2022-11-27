@@ -156,6 +156,8 @@ ngx_conf_add_dump(ngx_conf_t *cf, ngx_str_t *filename)
 }
 
 
+// 解析配置
+// 遇到块类型的配置，里层的处理逻辑最后会重新调用到这里
 char *
 ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
 {
@@ -197,6 +199,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
                           ngx_fd_info_n " \"%s\" failed", filename->data);
         }
 
+        // TODO: 这里用局部变量的地址，后边的逻辑会有问题不？
         cf->conf_file->buffer = &buf;
 
         buf.start = ngx_alloc(NGX_CONF_BUFFER, cf->log);
@@ -319,7 +322,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
         }
 
 
-        // 执行各个配置选项的回调函数（设置在内存里的结构体）
+        // 执行各个配置选项的回调函数（一般都是对内存里的结构体进行操作）
         rc = ngx_conf_handler(cf, rc);
 
         if (rc == NGX_ERROR) {
@@ -356,6 +359,8 @@ done:
 }
 
 
+// 已经完成 token 切割，放入到了 cf->args 里
+// 搜索此配置对应的 command 并调用其 set hook
 static ngx_int_t
 ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
 {
@@ -388,6 +393,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
 
             found = 1;
 
+            // 确认当前 command 是否符合所要求的 cf->module_type 与 cf->cmd_type 类型
             if (cf->cycle->modules[i]->type != NGX_CONF_MODULE
                 && cf->cycle->modules[i]->type != cf->module_type)
             {
@@ -464,6 +470,8 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
                 }
             }
 
+            // BLOCK 类型的配置，在这个 set hook 里还会继续解析
+            // 典型例子：ngx_http_block
             rv = cmd->set(cf, cmd, conf);
 
             if (rv == NGX_CONF_OK) {
@@ -503,6 +511,8 @@ invalid:
 }
 
 
+// 读取一“行”配置，出错或遇到 ; { } EOF 等字符/情况时结束本次调用
+// 读取到的配置将分割、转义后 push 到 cf->args 中
 static ngx_int_t
 ngx_conf_read_token(ngx_conf_t *cf)
 {
@@ -534,8 +544,10 @@ ngx_conf_read_token(ngx_conf_t *cf)
 
     for ( ;; ) {
 
+        // buffer 里没数据了，再读一批数据进来
         if (b->pos >= b->last) {
 
+            // 文件异常结束
             if (cf->conf_file->file.offset >= file_size) {
 
                 if (cf->args->nelts > 0 || !last_space) {
@@ -659,11 +671,13 @@ ngx_conf_read_token(ngx_conf_t *cf)
             }
         }
 
+        // TODO：上一个 token 已结束
         if (last_space) {
 
             start = b->pos - 1;
             start_line = cf->conf_file->line;
 
+            // 忽略连续的空格
             if (ch == ' ' || ch == '\t' || ch == CR || ch == LF) {
                 continue;
             }

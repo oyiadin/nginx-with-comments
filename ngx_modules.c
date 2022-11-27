@@ -114,14 +114,14 @@ ngx_module_t *ngx_modules[] = {
 };
 
 char *ngx_module_names[] = {
-    "ngx_core_module",
-    "ngx_errlog_module",
+    "ngx_core_module",                      // NGX_CORE_MODULE 类型的模块
+    "ngx_errlog_module",                    // NGX_CORE_MODULE 类型的模块
     "ngx_conf_module",
-    "ngx_regex_module",
-    "ngx_events_module",
+    "ngx_regex_module",                     // NGX_CORE_MODULE 类型的模块
+    "ngx_events_module",                    // NGX_CORE_MODULE 类型的模块
     "ngx_event_core_module",
     "ngx_epoll_module",
-    "ngx_http_module",
+    "ngx_http_module",                      // NGX_CORE_MODULE 类型的模块
     "ngx_http_core_module",
     "ngx_http_log_module",
     "ngx_http_upstream_module",

@@ -40,6 +40,7 @@ ngx_preinit_modules(void)
 }
 
 
+// 初始化 cycle->modules，从静态的模块列表里拷贝过来（由 configure 生成）
 ngx_int_t
 ngx_cycle_modules(ngx_cycle_t *cycle)
 {
