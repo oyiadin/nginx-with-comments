@@ -241,6 +241,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
 
     // 调用模块的 create_conf 回调
     // 当前初始化期间只处理 NGX_CORE_MODULE 类型的模块
+    // 非 NGX_CORE_MODULE 的配置，由各个体系自行处理（如 http）
     for (i = 0; cycle->modules[i]; i++) {
         // NGX_CORE_MODULE 的模块具体有哪些，可跳转该宏的定义
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
@@ -300,8 +301,6 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         return NULL;
     }
 
-    // TODO: 疑问：这里应该是能处理所有模块注册的配置项的
-    // 但跟上边只对 NGX_CORE_MODULE 执行了 create_conf 有什么关联，还得再看看
     if (ngx_conf_parse(&conf, &cycle->conf_file) != NGX_CONF_OK) {
         environ = senv;
         ngx_destroy_cycle_pools(&conf);
@@ -313,6 +312,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
                        cycle->conf_file.data);
     }
 
+    // 调用模块的 init_conf 回调
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
