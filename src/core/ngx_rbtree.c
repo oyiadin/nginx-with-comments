@@ -28,9 +28,12 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
 
     /* a binary tree insert */
 
+    // 参考：https://zh.m.wikipedia.org/zh-cn/%E7%BA%A2%E9%BB%91%E6%A0%91
+
     root = &tree->root;
     sentinel = tree->sentinel;
 
+    // 情形1：树为空，直接作为根进行插入，且为黑
     if (*root == sentinel) {
         node->parent = NULL;
         node->left = sentinel;
@@ -41,27 +44,45 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
         return;
     }
 
+    // 先以普通 BST 的方法插入新节点
+    // 如果后续进不去 while 条件，即父节点为黑节点，即对应着维基百科中的情形2
     tree->insert(*root, node, sentinel);
 
     /* re-balance tree */
 
+    // 父节点为红节点，破坏了“任意路径上不能存在连续的红节点”性质
+    // 需要进一步调整，对应着维基百科中的情形3、4、5
+    // 注意到，情形3是需要递归往树根方向处理的，在这里整体被作为一个 while 循环实现
     while (node != *root && ngx_rbt_is_red(node->parent)) {
+        // 由于父节点是红节点，祖父节点必定存在，无需判空
 
+        // 父节点是祖父节点的左支情形
+        // 下边 else 分支仅方向相反，其他逻辑都是一样的，不做重复分析
         if (node->parent == node->parent->parent->left) {
+            // 叔父节点
             temp = node->parent->parent->right;
 
+            // 如果叔父节点也是红节点，对应着情形3
+            // 直接把父节点、叔父节点的红色性质给“往上推”即可
             if (ngx_rbt_is_red(temp)) {
                 ngx_rbt_black(node->parent);
                 ngx_rbt_black(temp);
                 ngx_rbt_red(node->parent->parent);
+                // 由于祖父节点由黑变红，可能破坏了性质
+                // 将 node 设为祖父节点，继续往上迭代处理
                 node = node->parent->parent;
 
             } else {
+                // 叔父节点是黑节点，但当前节点是父节点的右支，对应着情形4
+                // 需要先做一下左旋，使其成为情形5
                 if (node == node->parent->right) {
                     node = node->parent;
                     ngx_rbtree_left_rotate(root, sentinel, node);
                 }
 
+                // 叔父节点是黑节点，当前节点是父节点的左支，对应着情形5
+                // 左支的红色节点太多，基于祖父节点整体右旋，将多余的一个红色给祖父节点的右支带去，以达到平衡
+                // 此时已满足所有性质，无需往上迭代处理
                 ngx_rbt_black(node->parent);
                 ngx_rbt_red(node->parent->parent);
                 ngx_rbtree_right_rotate(root, sentinel, node->parent->parent);
